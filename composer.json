@@ -1,7 +1,7 @@
 {
-    "name": "kuiba/php-helper",
+    "name": "think-helper",
     "type": "library",
-    "description": "php-helper",
+    "description": "think-helper",
     "license": "MIT",
     "authors": [
         {
@@ -14,8 +14,6 @@
         "phpoffice/phpspreadsheet": "^1.9",
         "endroid/qr-code": "^3.6",
         "alibabacloud/client": "^1.5",
-        "casbin/casbin": "^2.1",
-        "casbin/dbal-adapter": "^1.1"
     },
     "autoload": {
         "psr-4": {
