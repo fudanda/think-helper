@@ -16,23 +16,10 @@
     },
     "autoload": {
         "psr-4": {
-            "Kuiba\\kuibaAdmin\\": "src",
-            "Kuiba\\util\\": "util",
-            "Kuiba\\Baguda\\": "util/Kuiba/Baguda",
-            "Kuiba\\Carlaxiaokeling\\": "util/Kuiba/Carlaxiaokeling",
-            "Kuiba\\Dacang\\": "util/Kuiba/Dacang",
-            "Kuiba\\Haiwenxiang\\": "util/Kuiba/Haiwenxiang",
-            "Kuiba\\Leiguang\\": "util/Kuiba/Leiguang",
-            "Kuiba\\Mellonmonicajia\\": "util/Kuiba/Mellonmonicajia",
-            "Kuiba\\Qihengsan\\": "util/Kuiba/Qihengsan",
-            "Kuiba\\Qiuluomu\\": "util/Kuiba/Qiuluomu",
-            "Kuiba\\Rangu\\": "util/Kuiba/Rangu",
-            "Kuiba\\Wanliang\\": "util/Kuiba/Wanliang",
-            "Kuiba\\Youmingkuang\\": "util/Kuiba/Youmingkuang",
-            "Kuiba\\Youruoli\\": "util/Kuiba/Youruoli"
+            "kuiba\\": "src"
         },
         "files": [
-            "helper.php"
+            "src/helper.php"
         ]
     }
 }

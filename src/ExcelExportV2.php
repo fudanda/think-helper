@@ -1,6 +1,6 @@
 <?php
 
-namespace Kuiba\Qihengsan;
+namespace Kuiba;
 
 use Exception;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
