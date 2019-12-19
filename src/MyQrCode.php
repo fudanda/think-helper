@@ -1,13 +1,13 @@
 <?php
 
-namespace Kuiba;
+namespace kuiba;
 
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\QrCode;
 
 class  MyQrCode
 {
-    public function getQrCode($data = null, $name = null)
+    public function getQrCode($data = null, $name = null, $logo = null)
     {
         if (is_null($data)) {
             return false;
@@ -23,7 +23,6 @@ class  MyQrCode
         //设置二维码大小
         $qrCode->setSize(200);
         // $qrCode->setPadding(20);
-        $logo = '../public/static/group/img/logo_nav.png';
 
         $qrCode->setWriterByName('png');
         $qrCode->setMargin(10);
@@ -31,8 +30,12 @@ class  MyQrCode
         $qrCode->setErrorCorrectionLevel(new ErrorCorrectionLevel(ErrorCorrectionLevel::HIGH));
         $qrCode->setForegroundColor(['r' => 0, 'g' => 0, 'b' => 0, 'a' => 0]);
         $qrCode->setBackgroundColor(['r' => 255, 'g' => 255, 'b' => 255, 'a' => 0]);
-        // $qrCode->setLogoPath($logo);
-        // $qrCode->setLogoSize(150, 200);
+        if (!is_null($logo)) {
+            // $logo = '../public/static/group/img/logo_nav.png';
+            $qrCode->setLogoPath($logo);
+            $qrCode->setLogoSize(50, 50);
+        }
+
         $qrCode->setRoundBlockSize(true);
         $qrCode->setValidateResult(false);
         $qrCode->setWriterOptions(['exclude_xml_declaration' => true]);

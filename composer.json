@@ -1,13 +1,11 @@
 {
-    "name":"fdd/think-helper",
+    "name": "fdd/think-helper",
     "description": "think-helper",
     "license": "MIT",
-    "authors": [
-        {
-            "name": "huo san",
-            "email": "314553951@qq.com"
-        }
-    ],
+    "authors": [{
+        "name": "huo san",
+        "email": "314553951@qq.com"
+    }],
     "require": {
         "php": ">=7.1.0",
         "phpoffice/phpspreadsheet": "^1.9",
@@ -16,7 +14,7 @@
     },
     "autoload": {
         "psr-4": {
-            "kuiba\\": "src"
+            "kuiba\\": "src/"
         },
         "files": [
             "src/helper.php"
