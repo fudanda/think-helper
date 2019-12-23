@@ -1,6 +1,6 @@
 <?php
 
-namespace Kuiba;
+namespace kuiba;
 
 use Exception;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
@@ -11,6 +11,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Writer\Csv;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use ZipArchive;
+use kuiba\Snowflake;
 
 /**
  * excel 导入-导出
@@ -20,8 +21,6 @@ class ExcelExportV2
     //存储文件的临时目录
     public static $tmpdir = './static/excel/tmp/';
     public static $zipdir = './static/excel/zip/';
-
-
     /**
      * 导出Excel
      *
@@ -38,7 +37,6 @@ class ExcelExportV2
         try {
             !$filename && $filename = time();
             $spreadsheet = self::processing($list, $header, $filename, $suffix);
-
             $suffix_arr = [
                 'xlsx' => ['PhpOffice\PhpSpreadsheet\Writer\Xlsx', 'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;'],
                 'xls'  => ['PhpOffice\PhpSpreadsheet\Writer\Xls', 'Content-Type:application/vnd.ms-excel;charset=utf-8;'],
@@ -46,7 +44,6 @@ class ExcelExportV2
                 'html' => ['PhpOffice\PhpSpreadsheet\Writer\Html', 'Content-Type:text/html;charset=utf-8;']
             ];
             !array_key_exists($suffix, $suffix_arr) && self::Throwanexception('后缀名格式不存在!');
-
             $writer = new $suffix_arr[$suffix][0]($spreadsheet);
             // 直接输出下载
             header($suffix_arr[$suffix][1]);
@@ -59,7 +56,6 @@ class ExcelExportV2
             return $e->getMessage();
         }
     }
-
     /**
      * 数据处理
      *
@@ -80,7 +76,6 @@ class ExcelExportV2
         ob_start();
         // 开始写入内容
         if ($type == 1) {
-
             $spreadsheet = new Spreadsheet();
             //设置文档信息
             $spreadsheet->getProperties()
@@ -107,7 +102,6 @@ class ExcelExportV2
                 // $sheet->getDefaultRowDimension(1)->setRowHeight(15);
                 $hk += 1;
             }
-
             $column = 2;
             $size = ceil(count($list) / 500);
             for ($i = 0; $i < $size; $i++) {
@@ -177,7 +171,6 @@ class ExcelExportV2
             return $spreadsheet_arr;
         }
     }
-
     /**
      * 导出Excel 压缩包
      *
@@ -192,7 +185,6 @@ class ExcelExportV2
      */
     public static function exportZip($list = [], $header = [], $filename = '', $suffix = 'xlsx', $limit = 2000)
     {
-
         try {
             !$filename && $filename = time();
             $spreadsheet = self::processing($list, $header, $filename, $suffix, 2, $limit);
@@ -254,6 +246,30 @@ class ExcelExportV2
     }
 
 
+    public function exportToFolder($score_list, $header, $basePath = null, $fileName = null, $suffix   = 'xlsx')
+    {
+        if (is_null($fileName)) {
+            return null;
+        }
+        if (is_null($basePath)) {
+            return null;
+        }
+        $spreadsheet = self::processing($score_list, $header, $fileName, $suffix);
+        $suffix_arr = [
+            'xlsx' => ['PhpOffice\PhpSpreadsheet\Writer\Xlsx', 'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;'],
+            'xls'  => ['PhpOffice\PhpSpreadsheet\Writer\Xls', 'Content-Type:application/vnd.ms-excel;charset=utf-8;'],
+            'csv'  => ['PhpOffice\PhpSpreadsheet\Writer\Csv', 'Content-type:text/csv;charset=utf-8;'],
+            'html' => ['PhpOffice\PhpSpreadsheet\Writer\Html', 'Content-Type:text/html;charset=utf-8;']
+        ];
+        !array_key_exists($suffix, $suffix_arr) && self::Throwanexception('后缀名格式不存在!');
+        $writer = new $suffix_arr[$suffix][0]($spreadsheet);
+        !is_dir($basePath) && mkdir($basePath, 0777, true);
+        $file_path = $basePath . $fileName . '.' . $suffix;
+        $writer->save($file_path);
+        return $file_path;
+    }
+
+
     /**
      * 导入
      *
@@ -264,14 +280,14 @@ class ExcelExportV2
      * @throws \PhpOffice\PhpSpreadsheet\Exception
      * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
      */
-    public static function import($filePath, $startRow = 1)
+    public static function import($filePath, $cellKey, $startRow = 1)
     {
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
-        $reader->setReadDataOnly(true);
+        // $reader->setReadDataOnly(true);
         if (!$reader->canRead($filePath)) {
             $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xls();
             // setReadDataOnly Set read data only 只读单元格的数据，不格式化 e.g. 读时间会变成一个数据等
-            $reader->setReadDataOnly(true);
+            // $reader->setReadDataOnly(true);
             if (!$reader->canRead($filePath)) {
                 throw new Exception('不能读取Excel');
             }
@@ -280,39 +296,55 @@ class ExcelExportV2
         $sheetCount = $spreadsheet->getSheetCount(); // 获取sheet的数量
         // 获取所有的sheet表格数据
         $excleDatas = [];
-        $emptyRowNum = 0;
-        for ($i = 0; $i < $sheetCount; $i++) {
-            $currentSheet = $spreadsheet->getSheet($i); // 读取excel文件中的第一个工作表
-            $allColumn = $currentSheet->getHighestColumn(); // 取得最大的列号
-            $allColumn = Coordinate::columnIndexFromString($allColumn); // 由列名转为列数('AB'->28)
-            $allRow = $currentSheet->getHighestRow(); // 取得一共有多少行
-            $arr = [];
-            for ($currentRow = $startRow; $currentRow <= $allRow; $currentRow++) {
-                // 从第1列开始输出
-                for ($currentColumn = 1; $currentColumn <= $allColumn; $currentColumn++) {
+        $img_arr = [];
+        foreach ($spreadsheet->getActiveSheet()->getDrawingCollection() as $key => $drawing) {
+            if ($drawing instanceof \PhpOffice\PhpSpreadsheet\Worksheet\Drawing) {
+                $zipReader = fopen($drawing->getPath(), 'r');
+                $imageContents = '';
+                while (!feof($zipReader)) {
+                    $imageContents .= fread($zipReader, 1024);
+                }
+                fclose($zipReader);
+                $exception_arr = [
+                    'jpeg' => 'jpg',
+                    'gif' => 'gif',
+                    'png' => 'png',
+                ];
+                $extension = $exception_arr[strtolower($drawing->getExtension())];
+                $filename = Snowflake::nextId(1) . '.' . $extension;
+                $filepath = '/static/uploads/' . date('Ymd', time()) . '/';
+                $file = $filepath . $filename;
+                file_put_contents('./' . $file, $imageContents);
+                $coor =    $drawing->getCoordinates();
+                $img_arr[$coor] = $file;
+            }
+        }
+        $currentSheet = $spreadsheet->getActiveSheet(); // 读取excel文件中的第一个工作表
+        $allColumn = $currentSheet->getHighestColumn(); // 取得最大的列号
+        $allColumn = Coordinate::columnIndexFromString($allColumn); // 由列名转为列数('AB'->28)
+        $allRow = $currentSheet->getHighestRow(); // 取得一共有多少行
+
+        $arr = [];
+        for ($currentRow = $startRow; $currentRow <= $allRow; $currentRow++) {
+            //从第1列开始输出
+            for ($currentColumn = 1; $currentColumn <= $allColumn; $currentColumn++) {
+                $key = Coordinate::stringFromColumnIndex($currentColumn);
+                $coor = $key . $currentRow;
+                if (array_key_exists($key, $cellKey)) {
+
+                    $val = $currentSheet->getCellByColumnAndRow($currentColumn, $currentRow)->getValue();
+                    $arr[$currentRow][$cellKey[$key]] = trim($val);
+                    array_key_exists($coor, $img_arr) && $arr[$currentRow][$cellKey[$key]] = $img_arr[$coor];
+                } else {
                     $val = $currentSheet->getCellByColumnAndRow($currentColumn, $currentRow)->getValue();
                     $arr[$currentRow][] = trim($val);
                 }
-                // $arr[$currentRow] = array_filter($arr[$currentRow]);
-                // 统计连续空行
-                if (empty($arr[$currentRow]) && $emptyRowNum <= 50) {
-                    $emptyRowNum++;
-                } else {
-                    $emptyRowNum = 0;
-                }
-                // 防止坑队友的同事在excel里面弄出很多的空行，陷入很漫长的循环中，设置如果连续超过50个空行就退出循环，返回结果
-                // 连续50行数据为空，不再读取后面行的数据，防止读满内存
-                if ($emptyRowNum > 50) {
-                    break;
-                }
             }
-            $excleDatas[$i] = $arr; // 多个sheet的数组的集合
+            if (empty($arr[$currentRow])) {
+                break;
+            }
         }
-        // 这里我只需要用到第一个sheet的数据，所以只返回了第一个sheet的数据
-        $returnData = $excleDatas ? array_shift($excleDatas) : [];
-        // 第一行数据就是空的，为了保留其原始数据，第一行数据就不做array_fiter操作；
-        $returnData = $returnData && isset($returnData[$startRow]) && !empty($returnData[$startRow])  ? array_filter($returnData) : $returnData;
-        return $returnData;
+        return $arr;
     }
     /**
      * 格式化内容
@@ -392,7 +424,7 @@ class ExcelExportV2
             while (false !== ($item = readdir($handle))) {
                 if ($item != "." && $item != "..") {
                     if (is_dir("$dirName/$item")) {
-                        $this->deldir("$dirName/$item");
+                        self::deldir("$dirName/$item");
                     } else {
                         unlink("$dirName/$item");
                     }
