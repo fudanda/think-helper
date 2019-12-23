@@ -344,6 +344,7 @@ class ExcelExportV2
                 break;
             }
         }
+        unlink($filePath);
         return $arr;
     }
     /**
