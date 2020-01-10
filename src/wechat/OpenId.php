@@ -21,7 +21,7 @@ class OpenId
             return null;
         }
         $url = "https://api.weixin.qq.com/sns/jscode2session?appid=$APPID&secret=$APPSECRET&js_code=$JSCODE&grant_type=authorization_code";
-        $json = httpRequest($url);
+        $json = http_request($url);
         $json = json_decode($json, true);
         return $json;
     }

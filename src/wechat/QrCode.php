@@ -19,11 +19,10 @@ class QrCode
      */
     public function getAppletQrCode($APPID = null, $APPSECRET = null, $param = NULL, $name = null, $path = NULL)
     {
+
         if (is_null($APPID) || is_null($APPSECRET)) {
             return null;
         }
-        // $APPID = "wxb60117a2cb5ad270";
-        // $APPSECRET =  "485325b7215e356aa4f3bd13b10e14e6";
         //获取access_token
         $access_token = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=$APPID&secret=$APPSECRET";
         $ACCESS_TOKEN = "";
@@ -38,7 +37,7 @@ class QrCode
 
         $qcode = "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=$ACCESS_TOKEN";
 
-        if (is_null($param)) return false;
+        if (is_null($param)) return null;
         $param = json_encode($param);
         //POST参数
         $result = http_request($qcode, $param, "POST");

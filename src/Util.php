@@ -142,4 +142,17 @@ class Util
     {
         return  str_replace('\\', '/', realpath(dirname(__FILE__) . '/')) . "/";
     }
+
+    /**
+     * Twitter的Snowflake生成全局唯一ID的PHP实现
+     *
+     * 可实现分布式全局唯一ID的生成
+     *
+     * 因为PHP不是常驻内存运行，所以无法实现原版的队列编号，采用随机数代替
+     * 可以最大程度避免并发请求时生成相同的ID
+     * 理论上，当MAX_RANDOM_BIT为12，也就是随机数最大值为4095时
+     * 每毫秒需生成的id小于1000即可以安全的生成不冲突的id
+     *
+     * @author Coeus <r.anerg@gmail.com>
+     */
 }
