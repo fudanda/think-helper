@@ -1,6 +1,6 @@
 <?php
 
-namespace Kuiba\Util;
+namespace kuiba;
 
 use think\facade\App;
 use think\facade\Config;
@@ -49,7 +49,7 @@ class Util
      * @param string $copyType
      * @return void
      */
-    public function handle($output, $type, $filePath, $baseFilePath, $checkFile = true, $copyType = 'copy')
+    public static function handle($output, $type, $filePath, $baseFilePath, $checkFile = true, $copyType = 'copy')
     {
         try {
             $config = [
@@ -68,10 +68,15 @@ class Util
                     'Create Resources error',
                     'Create Resources success:' . $filePath,
                 ],
-                'createCommonModel' => [
+                'createCommon' => [
                     'Common Model is exist',
                     'Create Common Model error',
                     'Create Common Model success:' . $filePath,
+                ],
+                'createController' => [
+                    'Controller is exist',
+                    'Create Controller error',
+                    'Create Controller success:' . $filePath,
                 ],
                 'createRoute' => [
                     'Router is exist',
@@ -106,7 +111,7 @@ class Util
             $output->writeln($e->getMessage());
         }
     }
-    public function getClassName($name, $type)
+    public static function getClassName($name, $type)
     {
         $appNamespace = App::getNamespace();
         if (strpos($name, $appNamespace . '\\') !== false) {
@@ -119,14 +124,14 @@ class Util
             $name = ucfirst($name);
         }
         strpos($name, '/') &&  $name = ucfirst(str_replace('/', '\\', $name));
-        return $this->getNamespace($appNamespace, $module) . '\\' . $type . '\\' . $name;
+        return self::getNamespace($appNamespace, $module) . '\\' . $type . '\\' . $name;
     }
-    public function getPathName($name)
+    public static function getPathName($name)
     {
         $name = str_replace(App::getNamespace() . '\\', '', $name);
         return Env::get('app_path') . ltrim(str_replace('\\', '/', $name), '/') . '.php';
     }
-    public function getNamespace($appNamespace, $module)
+    public static function getNamespace($appNamespace, $module)
     {
         return $module ? ($appNamespace . '\\' . $module) : $appNamespace;
     }
@@ -143,16 +148,70 @@ class Util
         return  str_replace('\\', '/', realpath(dirname(__FILE__) . '/')) . "/";
     }
 
+
+    public static function  download($filename, $delete)
+    {
+        //获取文件的扩展名
+        $allowDownExt = array('rar', 'zip', 'png', 'txt', 'mp4', 'html', 'xlsx', 'xls', 'csv');
+        //获取文件信息
+        $fileExt = pathinfo($filename);
+        //检测文件类型是否允许下载
+        if (!in_array($fileExt['extension'], $allowDownExt)) {
+            return false;
+        }
+        //设置脚本的最大执行时间，设置为0则无时间限制
+        set_time_limit(0);
+        ini_set('max_execution_time', '0');
+        //通过header()发送头信息
+        //因为不知道文件是什么类型的，告诉浏览器输出的是字节流
+        header('content-type:application/octet-stream');
+        //告诉浏览器返回的文件大小类型是字节
+        header('Accept-Ranges:bytes');
+        //获得文件大小
+        $filesize = filesize($filename); //(此方法无法获取到远程文件大小)
+        // $header_array = get_headers($filename, true);
+        // $filesize = $header_array['Content-Length'];
+
+        //告诉浏览器返回的文件大小
+        header('Accept-Length:' . $filesize);
+        //告诉浏览器文件作为附件处理并且设定最终下载完成的文件名称
+        header('content-disposition:attachment;filename=' . basename($filename));
+        //针对大文件，规定每次读取文件的字节数为4096字节，直接输出数据
+        $read_buffer = 4096;
+        $handle = fopen($filename, 'rb');
+        //总的缓冲的字节数
+        $sum_buffer = 0;
+        //只要没到文件尾，就一直读取
+        while (!feof($handle) && $sum_buffer < $filesize) {
+            echo fread($handle, $read_buffer);
+            $sum_buffer += $read_buffer;
+        }
+
+        //关闭句柄
+        fclose($handle);
+        $delete && unlink($filename);
+        exit;
+    }
+
     /**
-     * Twitter的Snowflake生成全局唯一ID的PHP实现
+     * 删除目录下的文件
      *
-     * 可实现分布式全局唯一ID的生成
-     *
-     * 因为PHP不是常驻内存运行，所以无法实现原版的队列编号，采用随机数代替
-     * 可以最大程度避免并发请求时生成相同的ID
-     * 理论上，当MAX_RANDOM_BIT为12，也就是随机数最大值为4095时
-     * 每毫秒需生成的id小于1000即可以安全的生成不冲突的id
-     *
-     * @author Coeus <r.anerg@gmail.com>
+     * @return void
      */
+    public static function deldir($dirName = null)
+    {
+        if ($handle = opendir($dirName)) {
+            while (false !== ($item = readdir($handle))) {
+                if ($item != "." && $item != "..") {
+                    if (is_dir("$dirName/$item")) {
+                        self::deldir("$dirName/$item");
+                    } else {
+                        unlink("$dirName/$item");
+                    }
+                }
+            }
+            closedir($handle);
+            rmdir($dirName);
+        }
+    }
 }

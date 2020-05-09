@@ -3,24 +3,94 @@
 namespace kuiba;
 
 use Exception;
+use kuiba\Snowflake;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
 use PhpOffice\PhpSpreadsheet\Writer\Html;
 use PhpOffice\PhpSpreadsheet\Writer\Xls;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\Writer\Csv;
-use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use ZipArchive;
-use kuiba\Snowflake;
 
 /**
  * excel 导入-导出
  */
-class ExcelExportV2
+class ExcelExport
 {
-    //存储文件的临时目录
-    public static $tmpdir = './static/excel/tmp/';
-    public static $zipdir = './static/excel/zip/';
+
+    /**
+     * 错误信息
+     * @var string
+     */
+    private $error = '';
+
+    /**
+     * 文件命名规则
+     * @var string
+     */
+    protected $rule = 'date';
+
+    /**
+     * 配置参数
+     * @var array
+     */
+    protected $config = [];
+
+    /**
+     * 传入表格数据
+     * @var array
+     */
+    protected $list = [];
+
+    /**
+     * 传入表头数据
+     * @var array
+     */
+    protected $header = [];
+    /**
+     * 配置存储文件的临时目录
+     * @var string
+     */
+    protected $tmpdir = './static/excel/tmp/';
+
+    /**
+     * 配置存储压缩文件的目录
+     * @var string
+     */
+    protected $zipdir = './static/excel/zip/';
+
+    /**
+     * 文件名
+     * @var string
+     */
+    protected $name;
+
+    /**
+     * 文件后缀
+     * @var string
+     */
+    protected $ext;
+
+    /**
+     * 构造方法
+     * @access public
+     */
+    public function __construct($name = '', $ext = 'xlsx')
+    {
+        $this->name = $name;
+        $this->ext = $ext;
+    }
+
+    // //存储文件的临时目录
+    // public static $tmpdir = './static/excel/tmp/';
+    // public static $zipdir = './static/excel/zip/';
+
+    // public static $list = [];
+    // public static $header = [];
+    // public static $name = '';
+    // public static $suffix = '';
+
     /**
      * 导出Excel
      *
@@ -39,9 +109,9 @@ class ExcelExportV2
             $spreadsheet = self::processing($list, $header, $filename, $suffix);
             $suffix_arr = [
                 'xlsx' => ['PhpOffice\PhpSpreadsheet\Writer\Xlsx', 'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;'],
-                'xls'  => ['PhpOffice\PhpSpreadsheet\Writer\Xls', 'Content-Type:application/vnd.ms-excel;charset=utf-8;'],
-                'csv'  => ['PhpOffice\PhpSpreadsheet\Writer\Csv', 'Content-type:text/csv;charset=utf-8;'],
-                'html' => ['PhpOffice\PhpSpreadsheet\Writer\Html', 'Content-Type:text/html;charset=utf-8;']
+                'xls' => ['PhpOffice\PhpSpreadsheet\Writer\Xls', 'Content-Type:application/vnd.ms-excel;charset=utf-8;'],
+                'csv' => ['PhpOffice\PhpSpreadsheet\Writer\Csv', 'Content-type:text/csv;charset=utf-8;'],
+                'html' => ['PhpOffice\PhpSpreadsheet\Writer\Html', 'Content-Type:text/html;charset=utf-8;'],
             ];
             !array_key_exists($suffix, $suffix_arr) && self::Throwanexception('后缀名格式不存在!');
             $writer = new $suffix_arr[$suffix][0]($spreadsheet);
@@ -79,11 +149,11 @@ class ExcelExportV2
             $spreadsheet = new Spreadsheet();
             //设置文档信息
             $spreadsheet->getProperties()
-                ->setCreator("srmkj")    //作者
+                ->setCreator("srmkj") //作者
                 ->setLastModifiedBy("srmkj") //最后修改者
-                ->setTitle("")  //标题
+                ->setTitle("") //标题
                 ->setSubject("") //副标题
-                ->setDescription("")  //描述
+                ->setDescription("") //描述
                 ->setKeywords("") //关键字
                 ->setCategory(""); //分类
             $sheet = $spreadsheet->getActiveSheet();
@@ -129,14 +199,14 @@ class ExcelExportV2
                 $new_spreadsheet = new Spreadsheet();
                 //设置文档信息
                 $new_spreadsheet->getProperties()
-                    ->setCreator("srmkj")    //作者
+                    ->setCreator("srmkj") //作者
                     ->setLastModifiedBy("srmkj") //最后修改者
-                    ->setTitle("")  //标题
+                    ->setTitle("") //标题
                     ->setSubject("") //副标题
-                    ->setDescription("")  //描述
+                    ->setDescription("") //描述
                     ->setKeywords("") //关键字
                     ->setCategory(""); //分类
-                $sheet =  $new_spreadsheet->getActiveSheet();
+                $sheet = $new_spreadsheet->getActiveSheet();
                 // 写入头部
                 $hk = 1;
                 foreach ($header as $k => $v) {
@@ -190,9 +260,9 @@ class ExcelExportV2
             $spreadsheet = self::processing($list, $header, $filename, $suffix, 2, $limit);
             $suffix_arr = [
                 'xlsx' => ['PhpOffice\PhpSpreadsheet\Writer\Xlsx', 'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;'],
-                'xls'  => ['PhpOffice\PhpSpreadsheet\Writer\Xls', 'Content-Type:application/vnd.ms-excel;charset=utf-8;'],
-                'csv'  => ['PhpOffice\PhpSpreadsheet\Writer\Csv', 'Content-type:text/csv;charset=utf-8;'],
-                'html' => ['PhpOffice\PhpSpreadsheet\Writer\Html', 'Content-Type:text/html;charset=utf-8;']
+                'xls' => ['PhpOffice\PhpSpreadsheet\Writer\Xls', 'Content-Type:application/vnd.ms-excel;charset=utf-8;'],
+                'csv' => ['PhpOffice\PhpSpreadsheet\Writer\Csv', 'Content-type:text/csv;charset=utf-8;'],
+                'html' => ['PhpOffice\PhpSpreadsheet\Writer\Html', 'Content-Type:text/html;charset=utf-8;'],
             ];
             !array_key_exists($suffix, $suffix_arr) && self::Throwanexception('后缀名格式不存在!');
             $random_dir = time() . rand(1000, 9999);
@@ -245,8 +315,7 @@ class ExcelExportV2
         }
     }
 
-
-    public function exportToFolder($score_list, $header, $basePath = null, $fileName = null, $suffix   = 'xlsx')
+    public function exportToFolder($score_list, $header, $basePath = null, $fileName = null, $suffix = 'xlsx')
     {
         if (is_null($fileName)) {
             return null;
@@ -257,9 +326,9 @@ class ExcelExportV2
         $spreadsheet = self::processing($score_list, $header, $fileName, $suffix);
         $suffix_arr = [
             'xlsx' => ['PhpOffice\PhpSpreadsheet\Writer\Xlsx', 'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;'],
-            'xls'  => ['PhpOffice\PhpSpreadsheet\Writer\Xls', 'Content-Type:application/vnd.ms-excel;charset=utf-8;'],
-            'csv'  => ['PhpOffice\PhpSpreadsheet\Writer\Csv', 'Content-type:text/csv;charset=utf-8;'],
-            'html' => ['PhpOffice\PhpSpreadsheet\Writer\Html', 'Content-Type:text/html;charset=utf-8;']
+            'xls' => ['PhpOffice\PhpSpreadsheet\Writer\Xls', 'Content-Type:application/vnd.ms-excel;charset=utf-8;'],
+            'csv' => ['PhpOffice\PhpSpreadsheet\Writer\Csv', 'Content-type:text/csv;charset=utf-8;'],
+            'html' => ['PhpOffice\PhpSpreadsheet\Writer\Html', 'Content-Type:text/html;charset=utf-8;'],
         ];
         !array_key_exists($suffix, $suffix_arr) && self::Throwanexception('后缀名格式不存在!');
         $writer = new $suffix_arr[$suffix][0]($spreadsheet);
@@ -268,7 +337,6 @@ class ExcelExportV2
         $writer->save($file_path);
         return $file_path;
     }
-
 
     /**
      * 导入
@@ -315,7 +383,7 @@ class ExcelExportV2
                 $filepath = '/static/uploads/' . date('Ymd', time()) . '/';
                 $file = $filepath . $filename;
                 file_put_contents('./' . $file, $imageContents);
-                $coor =    $drawing->getCoordinates();
+                $coor = $drawing->getCoordinates();
                 $img_arr[$coor] = $file;
             }
         }
@@ -362,15 +430,15 @@ class ExcelExportV2
                 return $value;
                 break;
                 // 日期
-            case  'date':
+            case 'date':
                 return !empty($value) ? date($array[3], $value) : null;
                 break;
                 // 选择框
-            case  'selectd':
-                return  $array[3][$value] ?? null;
+            case 'selectd':
+                return $array[3][$value] ?? null;
                 break;
                 // 匿名函数
-            case  'function':
+            case 'function':
                 return isset($array[3]) ? call_user_func($array[3], $row) : null;
                 break;
                 // 默认
@@ -434,5 +502,29 @@ class ExcelExportV2
             closedir($handle);
             rmdir($dirName);
         }
+    }
+
+    /**
+     * Get 配置参数
+     *
+     * @return  array
+     */
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+    /**
+     * Set 配置参数
+     *
+     * @param  array  $config  配置参数
+     *
+     * @return  self
+     */
+    public function setConfig(array $config)
+    {
+        $this->config = $config;
+
+        return $this;
     }
 }

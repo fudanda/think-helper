@@ -14,6 +14,17 @@
 // "Kuiba\\Youmingkuang\\": "util/Kuiba/Youmingkuang",
 // "Kuiba\\Youruoli\\": "util/Kuiba/Youruoli"
 
+\think\Console::addDefaultCommands([
+    \kuiba\command\Html::class,
+    // \kuiba\command\Curd::class,
+    // \kuiba\command\Vue::class,
+    // \kuiba\command\Controller::class,
+    // \kuiba\command\Model::class,
+    // \kuiba\command\Service::class,
+    // \kuiba\command\Page::class,
+    // \kuiba\command\Route::class,
+]);
+
 if (!function_exists('scan_dir')) {
     /**
      * 扫描目录.
