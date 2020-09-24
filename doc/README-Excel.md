@@ -22,16 +22,32 @@
     ];//表头
     $fileName = time();  //文件名 默认当前时间戳
     $suffix   = 'xlsx';  //后缀名 默认-xlsx-(xlsx/xls/html/csv)
-    $limit   = 'xlsx';  //后缀名 默认-xlsx-(xlsx/xls/html/csv)
-    //普通导出
-    return ExcelExportV2:: export($list, $header, $fileName,$suffix);
-    //压缩导出
-    return ExcelExportV2::exportZip($list, $header, $fileName,$suffix,$limit);
+    $limit   = 2000;  //后缀名 默认-xlsx-(xlsx/xls/html/csv)
+    //普通导出并下载
+    return ExcelExport::make($list, $header)->export()->download();
+    //压缩导出并下载
+    return  ExcelExport::make($list, $header)
+                ->compressed('./static/excel/zip/', './static/excel/tmp/')
+                ->export()->download();
+    //可选属性
+    setName();//设置文件名称
+    setExt();//设置文件格式 
+    //获取文件相对地址
+    ExcelExport::make($list, $header)->export()->getFilePath();   
+    //获取zip文件相对地址
+    ExcelExport::make($list, $header)->compressed()->export()->getFilePath(); 
 ```
 ## 导入
 ```php
-    $filePath   = './static/excel/1.xlsx'; //文件路径
-    $startIndex = 1;                       //开始行数 默认 1
-    $data = ExcelExportV2::import($filePath, $startIndex);
+    $filePath   = './static/1.xlsx'; //文件路径
+    $cellKey = [
+        'A' => 'title',
+        'B' => 'type',
+        'C' => 'content',
+        'D' => 'img',
+        'E' => 'create_time',
+    ]; //列对应字段
+    $startRow = 2;   //开始读取的行数 默认 1
+    $data = ExcelImport::make($filePath, $cellKey, $startRow)->delete(false)->import();
     var_dump($data);
 ```

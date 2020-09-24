@@ -1,6 +1,6 @@
 <?php
 
-namespace Kuiba;
+namespace fdd;
 
 /**
  * Twitter的Snowflake生成全局唯一ID的PHP实现

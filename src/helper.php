@@ -14,17 +14,6 @@
 // "Kuiba\\Youmingkuang\\": "util/Kuiba/Youmingkuang",
 // "Kuiba\\Youruoli\\": "util/Kuiba/Youruoli"
 
-\think\Console::addDefaultCommands([
-    \kuiba\command\Html::class,
-    // \kuiba\command\Curd::class,
-    // \kuiba\command\Vue::class,
-    // \kuiba\command\Controller::class,
-    // \kuiba\command\Model::class,
-    // \kuiba\command\Service::class,
-    // \kuiba\command\Page::class,
-    // \kuiba\command\Route::class,
-]);
-
 if (!function_exists('scan_dir')) {
     /**
      * 扫描目录.
@@ -283,6 +272,21 @@ if (!function_exists('Throwanexception')) {
     function Throwanexception($msg, $code = 0, $exception = '')
     {
         throw new \Exception($msg, $code);
+    }
+}
+if (!function_exists('exception')) {
+    /**
+     * 抛出异常处理
+     *
+     * @param string    $msg  异常消息
+     * @param string    $exception 异常类
+     *
+     * @throws Exception
+     */
+    function exception($msg, $exception = '')
+    {
+        $e = $exception ?: '\Exception';
+        throw new $e($msg);
     }
 }
 if (!function_exists('http_request')) {

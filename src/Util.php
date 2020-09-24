@@ -1,6 +1,6 @@
 <?php
 
-namespace kuiba;
+namespace fdd;
 
 use think\facade\App;
 use think\facade\Config;
@@ -191,6 +191,16 @@ class Util
         fclose($handle);
         $delete && unlink($filename);
         exit;
+    }
+
+    /**
+     * 生成器
+     */
+    public static function cursor($list)
+    {
+        foreach ($list as $key => $value) {
+            !is_null($value) && yield $value;
+        }
     }
 
     /**

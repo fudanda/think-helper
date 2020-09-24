@@ -2,22 +2,19 @@
     "name": "fdd/think-helper",
     "description": "think-helper",
     "license": "MIT",
-    "authors": [
-        {
-            "name": "huo san",
-            "email": "314553951@qq.com"
-        }
-    ],
+    "authors": [{
+        "name": "huo san",
+        "email": "314553951@qq.com"
+    }],
     "require": {
-        "php": ">=7.1.0",
+        "php": ">=5.6",
         "phpoffice/phpspreadsheet": "^1.9",
         "endroid/qr-code": "^3.6",
-        "alibabacloud/client": "^1.5",
-        "fdd/think-casbin": "^0.02.0"
+        "alibabacloud/client": "^1.5"
     },
     "autoload": {
         "psr-4": {
-            "kuiba\\": "src/"
+            "fdd\\": "src/"
         },
         "files": [
             "src/helper.php"
