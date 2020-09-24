@@ -15,7 +15,7 @@ abstract class Handler
    */
   private $_nextHandler;
 
-  private $yield = false; //携程
+  private $yield = false; //协程
 
   /**
    * 返回的数据
@@ -58,7 +58,7 @@ abstract class Handler
   }
 
   /**
-   * 开启携程
+   * 开启协程
    *
    * @param bool $yield
    */

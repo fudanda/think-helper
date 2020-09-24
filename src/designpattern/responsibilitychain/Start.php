@@ -11,7 +11,7 @@ class Start extends Handler
   private $error_code = 404; //状态码
   private $model = ''; //数据模型
 
-  private $yield = false; //携程
+  private $yield = false; //协程
 
   public function __construct($model)
   {
@@ -36,7 +36,7 @@ class Start extends Handler
   }
 
   /**
-   * 开启携程
+   * 开启协程
    *
    * @param bool $yield
    */
